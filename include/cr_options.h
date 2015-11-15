@@ -97,6 +97,7 @@ struct cr_options {
 	struct list_head	irmap_scan_paths;
 	bool			lsm_supplied;
 	char			*lsm_profile;
+	struct list_head	tmp_files;
 };
 
 extern struct cr_options opts;

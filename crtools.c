@@ -42,6 +42,7 @@
 #include "irmap.h"
 #include "fault-injection.h"
 #include "lsm.h"
+#include "tmp_files.h"
 
 #include "setproctitle.h"
 
@@ -60,6 +61,7 @@ void init_opts(void)
 	INIT_LIST_HEAD(&opts.inherit_fds);
 	INIT_LIST_HEAD(&opts.new_cgroup_roots);
 	INIT_LIST_HEAD(&opts.irmap_scan_paths);
+	INIT_LIST_HEAD(&opts.tmp_files);
 
 	opts.cpu_cap = CPU_CAP_DEFAULT;
 	opts.manage_cgroups = CG_MODE_DEFAULT;
@@ -255,6 +257,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "ghost-limit",		required_argument,	0, 1069 },
 		{ "irmap-scan-path",		required_argument,	0, 1070 },
 		{ "lsm-profile",		required_argument,	0, 1071 },
+		{ "tmp-file",			required_argument,	0, 1072 },
 		{ },
 	};
 
@@ -503,6 +506,12 @@ int main(int argc, char *argv[], char *envp[])
 		case 1071:
 			if (parse_lsm_arg(optarg) < 0)
 				return -1;
+			break;
+		case 1072:
+			if (tmp_file_add(optarg)) {
+				pr_err("Can't add tmp file %s\n", optarg);
+				return 1;
+			}
 			break;
 		case 'M':
 			{
@@ -753,6 +762,9 @@ usage:
 "  --enable-fs FSNAMES   a comma separated list of filesystem names or \"all\".\n"
 "                        force criu to (try to) dump/restore these filesystem's\n"
 "                        mountpoints even if fs is not supported.\n"
+"  --tmp-file FILE       Use this option for each file that can be lost between\n"
+"                        checkpoint and restore. File will be stored with the dump.\n"
+"                        The FS root of CRIU dump/restore process is always used.\n"
 "\n"
 "* Logging:\n"
 "  -o|--log-file FILE    log file name\n"
