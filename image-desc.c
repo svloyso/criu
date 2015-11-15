@@ -95,6 +95,7 @@ struct cr_fd_desc_tmpl imgset_template[CR_FD_MAX] = {
 	FD_ENTRY(CPUINFO,	"cpuinfo"),
 	FD_ENTRY(SECCOMP,	"seccomp"),
 	FD_ENTRY(USERNS,	"userns-%d"),
+	FD_ENTRY_F(TMP_FILES,	"tmpfiles.tar.gz", O_NOBUF),
 
 	[CR_FD_STATS] = {
 		.fmt	= "stats-%s",

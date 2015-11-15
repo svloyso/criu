@@ -82,6 +82,7 @@
 #include "seccomp.h"
 #include "seize.h"
 #include "fault-injection.h"
+#include "tmp_files.h"
 
 #include "asm/dump.h"
 
@@ -1548,6 +1549,9 @@ int cr_dump_tasks(pid_t pid)
 		goto err;
 
 	if (dump_pstree(root_item))
+		goto err;
+
+	if (dump_tmp_files())
 		goto err;
 
 	if (root_ns_mask)

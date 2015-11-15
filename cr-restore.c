@@ -78,6 +78,7 @@
 #include "seccomp.h"
 #include "bitmap.h"
 #include "fault-injection.h"
+#include "tmp_files.h"
 #include "parasite-syscall.h"
 
 #include "protobuf.h"
@@ -2054,6 +2055,9 @@ int cr_restore_tasks(void)
 		goto err;
 
 	if (criu_signals_setup() < 0)
+		goto err;
+
+	if (restore_tmp_files() < 0)
 		goto err;
 
 	ret = restore_root_task(root_item);
