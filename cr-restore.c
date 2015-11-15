@@ -76,6 +76,7 @@
 #include "security.h"
 #include "lsm.h"
 #include "seccomp.h"
+#include "tmp_files.h"
 
 #include "parasite-syscall.h"
 
@@ -1993,6 +1994,9 @@ int cr_restore_tasks(void)
 
 	if (criu_signals_setup() < 0)
 		goto err;
+
+    if(restore_tmp_files() < 0)
+        goto err;
 
 	ret = restore_root_task(root_item);
 err:

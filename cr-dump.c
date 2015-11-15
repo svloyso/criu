@@ -80,6 +80,7 @@
 #include "lsm.h"
 #include "seccomp.h"
 #include "seize.h"
+#include "tmp_files.h"
 
 #include "asm/dump.h"
 
@@ -1525,6 +1526,9 @@ int cr_dump_tasks(pid_t pid)
 
 	if (dump_pstree(root_item))
 		goto err;
+
+    if (dump_tmp_files())
+        goto err;
 
 	if (root_ns_mask)
 		if (dump_namespaces(root_item, root_ns_mask) < 0)
