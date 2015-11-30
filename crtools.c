@@ -746,7 +746,7 @@ usage:
 "  --enable-fs FSNAMES   a comma separated list of filesystem names or \"all\".\n"
 "                        force criu to (try to) dump/restore these filesystem's\n"
 "                        mountpoints even if fs is not supported.\n"
-"  --tmp-file FILE		 add addition tmp file"
+"  --tmp-file FILE		 Use this option to for each file that can be lost between checkpoint and restore. File will be stored with the dump.\n"
 "\n"
 "* Logging:\n"
 "  -o|--log-file FILE    log file name\n"

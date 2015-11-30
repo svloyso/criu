@@ -87,7 +87,7 @@ struct cr_options {
 	bool			aufs;		/* auto-deteced, not via cli */
 	bool			overlayfs;
 	size_t			ghost_limit;
-    struct list_head    tmp_files;
+	struct list_head	tmp_files;
 };
 
 extern struct cr_options opts;
