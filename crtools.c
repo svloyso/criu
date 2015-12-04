@@ -251,7 +251,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "enable-external-masters", 	no_argument, 		0, 1067 },
 		{ "freeze-cgroup",		required_argument,	0, 1068 },
 		{ "ghost-limit",		required_argument,	0, 1069 },
-		{ "tmp-file",           required_argument,  0, 1070 },
+		{ "tmp-file",			required_argument,	0, 1070 },
 		{ },
 	};
 
@@ -746,7 +746,7 @@ usage:
 "  --enable-fs FSNAMES   a comma separated list of filesystem names or \"all\".\n"
 "                        force criu to (try to) dump/restore these filesystem's\n"
 "                        mountpoints even if fs is not supported.\n"
-"  --tmp-file FILE		 Use this option to for each file that can be lost between checkpoint and restore. File will be stored with the dump.\n"
+"  --tmp-file FILE       Use this option to for each file that can be lost between checkpoint and restore. File will be stored with the dump.\n"
 "\n"
 "* Logging:\n"
 "  -o|--log-file FILE    log file name\n"
