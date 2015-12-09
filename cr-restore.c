@@ -1995,7 +1995,7 @@ int cr_restore_tasks(void)
 	if (criu_signals_setup() < 0)
 		goto err;
 
-	if(restore_tmp_files() < 0)
+	if (restore_tmp_files() < 0)
 		goto err;
 
 	ret = restore_root_task(root_item);
