@@ -22,6 +22,7 @@ struct tmp_file_node {
 	char	filepath[PATH_MAX];
 };
 
+
 int tmp_file_add(char* filename) {
 	struct tmp_file_node* node = xmalloc(sizeof(*node));
 
@@ -35,41 +36,13 @@ int tmp_file_add(char* filename) {
 	return 0;
 }
 
-static char* make_append_cmd(const char* filepath, const char* tarname) {
-	char cmd_template[] = "tar -f \"%s\" -C / -r \"%s\" 2> /dev/null";
-	char* cmd = xmalloc(strlen(filepath) + sizeof(cmd_template) + strlen(tarname));
-	sprintf(cmd, cmd_template, tarname, filepath);
-	return cmd;
-}
-
-static int get_tarname(char* buf, size_t buf_size) {
-	int ret = 0;
-	char fdfile[64];
-	int imgdir_fd = get_service_fd(IMG_FD_OFF);
-	sprintf(fdfile, "/proc/self/fd/%d", imgdir_fd);
-	ret = readlink(fdfile, buf, buf_size);
-	if (ret == -1) {
-		return errno;
+static int get_tmpfiles_count() {
+	struct tmp_file_node* pos;
+	int count = 0;
+	list_for_each_entry(pos, &opts.tmp_files, list) {
+		count += 1;
 	}
-	ret = 0;
-	strcat(buf, "/" TMP_TAR_NAME);
-	return ret;
-}
-
-static int make_empty_tar() {
-	int ret = 0;
-	char* fullpath = xmalloc(PATH_MAX);
-	ret = get_tarname(fullpath, PATH_MAX);
-	if (ret) {
-		goto out;
-	}
-	char cmd_template[] = "tar -cf \"%s\" -T /dev/null 2> /dev/null";
-	char cmd[PATH_MAX + sizeof(cmd_template)];
-	sprintf(cmd, cmd_template, fullpath);
-	ret = system(cmd);
-out:
-	xfree(fullpath);
-	return ret;
+	return count;
 }
 
 int dump_tmp_files(void) {
@@ -77,38 +50,51 @@ int dump_tmp_files(void) {
 	if (list_empty(&opts.tmp_files)) {
 		return ret;
 	}
-	ret = make_empty_tar();
-	if (ret) {
-		return ret;
+	char** args = xmalloc((get_tmpfiles_count() + 7) * sizeof(char*));
+	if (!args) {
+		return -1;
 	}
-	char tarname[PATH_MAX];
-	get_tarname(tarname, PATH_MAX);
-	if (ret) {
-		return ret;
-	}
+	args[0] = "tar";
+	args[1] = "--create";
+	args[2] = "--absolute-names";
+	args[3] = "--gzip";
+	args[4] = "--no-unquote";
+	args[5] = "--no-wildcards";
 	struct tmp_file_node* pos;
+	int i = 6;
 	list_for_each_entry(pos, &opts.tmp_files, list) {
-		const char* tmp_filepath = pos->filepath;
-		char* cmd = make_append_cmd(tmp_filepath, tarname);
-		ret = system(cmd);
-		xfree(cmd);
-		if (ret) {
-			return ret;
-		}
+		args[i++] = pos->filepath;
 	}
+	args[i] = NULL;
+	
+	struct cr_img* img;
+	img = open_image(CR_FD_TMP_FILES, O_DUMP);
+	if(!img)
+		goto out;
+	ret = cr_system(-1, img_raw_fd(img), -1, "tar", args);
+	close_image(img);
+out:
+	xfree(args);
+
 	return ret;
 }
 
 int restore_tmp_files(void) {
-	int ret = -1;
-	char tarname[PATH_MAX];
-	get_tarname(tarname, PATH_MAX);
-	char cmd_template[] = "tar -xf \"%s\" -C / 2> /dev/null";
-	char cmd[PATH_MAX + sizeof(cmd_template)];
-	sprintf(cmd, cmd_template, tarname);
-	if (access(tarname, F_OK) != -1) {
-		ret = system(cmd);
+	int ret = 0;
+	struct cr_img *img;
+	img = open_image(CR_FD_TMP_FILES, O_RSTR);
+	if (!img || empty_image(img)) 
+		return -1;
+	ret = cr_system(img_raw_fd(img), -1, -1, "tar", 
+			(char *[]) {"tar", "--extract", "--gzip", 
+				"--no-unquote", "--no-wildcards",
+				"--absolute-names", "--directory", "/", NULL});
+	close_image(img);
+	if (ret) {
+		pr_err("Can't restore tmp files\n");
+		return -1;
 	}
-	return ret;
+
+	return 0;
 }
 
